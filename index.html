@@ -1,261 +1,98 @@
-<!DOCTYPE html>
-<html lang="es">
+<!doctype html>
+<html lang="es-AR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="description" content="Carrera de Gurises: trivia familiar. Girá la ruleta, respondé y ganá medallas o puntos." />
-  <meta name="theme-color" content="#2B8BEA" />
-  <title>Carrera de Gurises 🎲</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./css/styles.css?v=12" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102a26">
+  <meta name="description" content="Trivia de ingeniería del GIESIN en la UTN Facultad Regional Resistencia.">
+  <title>Desafío GIESIN | UTN Resistencia</title>
+  <link rel="stylesheet" href="/css/evento.css">
+  <script type="module" src="/js/evento.mjs"></script>
 </head>
 <body>
-  <a class="skip-link" href="#main-content">Saltar al contenido</a>
-  <div class="app-shell max-w-md mx-auto min-h-screen flex flex-col relative overflow-hidden">
-    <div class="bg-scene" aria-hidden="true"><div class="bg-forest"></div></div>
-
-    <header class="topbar">
-      <span class="topbar-logo" aria-hidden="true">🎲</span>
-      <p class="topbar-title">CARRERA DE GURISES</p>
-      <span id="live-badge" class="live-badge hidden" aria-live="polite">🔴 EN VIVO</span>
-      <button type="button" id="btn-share" class="topbar-share host-only" aria-label="Compartir partida en vivo">📡</button>
-      <button type="button" id="btn-goto-join" class="topbar-share" aria-label="Unirse a una partida en vivo">👀</button>
-      <span class="topbar-sub">para jugar en (fat)milia</span>
-    </header>
-
-    <main id="main-content" class="flex-1 px-4 pb-32 pt-3">
-      <!-- JOIN ESPECTADOR -->
-      <section id="screen-join" class="hidden" aria-labelledby="join-title">
-        <div class="card-toon center">
-          <p class="hero-emoji" aria-hidden="true">👀</p>
-          <h1 id="join-title" class="font-display tracking-wide font-extrabold">MIRAR PARTIDA</h1>
-          <p class="subtitle">Poné el código que te pasó el anfitrión</p>
-          <div class="grid gap-2 mt-3">
-            <input id="join-code" class="input-toon center" maxlength="5" placeholder="XXXXX" aria-label="Código de sala" style="text-transform:uppercase;letter-spacing:.3em;font-size:1.4rem;" />
-            <p id="join-status" class="note" aria-live="polite"></p>
-            <button type="button" id="btn-join" class="btn-play">Unirse 👀</button>
-            <button type="button" id="btn-join-cancel" class="btn-white">Volver ◀️</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- A. SETUP -->
-      <section id="screen-setup" aria-labelledby="setup-title">
-        <div class="hero-toon">
-          <p class="hero-emoji" aria-hidden="true">🎲</p>
-          <h1 id="setup-title" class="font-display tracking-wide font-extrabold">CARRERAS DE GURISES</h1>
-          <p class="subtitle">Girá la ruleta, respondé y ganá 🏁</p>
-        </div>
-
-        <form id="setup-form" novalidate class="grid gap-4 mt-4">
-          <fieldset class="card-toon">
-            <legend class="legend-toon"><i class="fa-solid fa-users"></i> JUGADORES</legend>
-            <p class="label-sm">Elegí el número de jugadores (1 a 10)</p>
-            <div id="player-count-group" class="grid grid-cols-5 gap-2" role="group" aria-label="Número de jugadores">
-              <button type="button" class="btn-count" data-count="1">1</button>
-              <button type="button" class="btn-count is-active" data-count="2">2</button>
-              <button type="button" class="btn-count" data-count="3">3</button>
-              <button type="button" class="btn-count" data-count="4">4</button>
-              <button type="button" class="btn-count" data-count="5">5</button>
-              <button type="button" class="btn-count" data-count="6">6</button>
-              <button type="button" class="btn-count" data-count="7">7</button>
-              <button type="button" class="btn-count" data-count="8">8</button>
-              <button type="button" class="btn-count" data-count="9">9</button>
-              <button type="button" class="btn-count" data-count="10">10</button>
-            </div>
-            <div id="players-config" class="grid gap-2 mt-3" aria-live="polite"></div>
-          </fieldset>
-
-          <fieldset class="card-toon">
-            <legend class="legend-toon"><i class="fa-solid fa-gamepad"></i> GAME MODE</legend>
-            <div class="grid gap-2" role="radiogroup" aria-label="Modo de juego">
-              <label class="mode-card">
-                <input type="radio" name="win-mode" value="clasico" checked />
-                <span class="mode-body">
-                  <strong>Modo Clásico</strong>
-                  <small>Conseguir las insignias en juego 🏅</small>
-                </span>
-              </label>
-              <label class="mode-card">
-                <input type="radio" name="win-mode" value="puntos" />
-                <span class="mode-body">
-                  <strong>Carrera de Puntos</strong>
-                  <small>Primero en alcanzar 10 aciertos ⭐</small>
-                </span>
-              </label>
-            </div>
-          </fieldset>
-
-          <fieldset class="card-toon">
-            <legend class="legend-toon">🎯 CATEGORÍAS</legend>
-            <p class="label-sm">Elegí las categorías en juego (mínimo 2)</p>
-            <div id="cat-select" class="cat-grid" role="group" aria-label="Categorías en juego"></div>
-          </fieldset>
-
-          <fieldset class="card-toon">
-            <legend class="legend-toon"><i class="fa-solid fa-stopwatch"></i> TIEMPO ⏱️</legend>
-            <label for="time-limit" class="label-sm">Límite por pregunta</label>
-            <select id="time-limit" name="time-limit" class="input-toon">
-              <option value="0" selected>Sin límite</option>
-              <option value="15">15 segundos</option>
-              <option value="30">30 segundos</option>
-              <option value="60">60 segundos</option>
-            </select>
-            <p class="note">⏱️ Sin tiempo = fallo y corta racha. 🔥 1º acierto = 0 🪙, cada seguido = +1 🪙.</p>
-          </fieldset>
-
-          <button type="submit" id="btn-start" class="btn-play">¡A JUGAR! 🚀</button>
-          <button type="button" id="btn-goto-join2" class="btn-white w-full">👀 Mirar una partida en vivo</button>
-        </form>
-      </section>
-
-      <!-- B. WHEEL -->
-      <section id="screen-wheel" class="hidden" aria-labelledby="wheel-title">
-        <div id="turn-indicator" class="turn-toon" aria-live="polite" aria-atomic="true">
-          <span id="turn-avatar" class="avatar-toon" aria-hidden="true">😀</span>
-          <span class="turn-txt">Turno de <strong id="turn-name">Jugador 1</strong><br /><small id="turn-meta">0 pts · 🪙 0</small></span>
-        </div>
-        <p id="guest-note" class="note center hidden">👀 Estás mirando en vivo. El anfitrión maneja el juego.</p>
-
-        <h2 id="wheel-title" class="wheel-title">Touch-interactive inspired category wheel</h2>
-        <div class="wheel-wrap">
-          <div id="wheel-pointer" class="wheel-pointer" aria-hidden="true">🔻</div>
-          <svg id="wheel-svg" viewBox="0 0 320 320" role="img" aria-label="Ruleta de categorías">
-            <g id="wheel-disc"></g>
-            <g id="wheel-hub">
-              <circle cx="160" cy="160" r="44" fill="#fff" stroke="#0f172a" stroke-width="5" />
-              <text x="160" y="176" text-anchor="middle" font-size="42">😊</text>
-            </g>
-          </svg>
-        </div>
-        <p id="roulette-hint" class="note center">🧈 1 de cada 10 giros sale <strong>Mantequita</strong> y elegís categoría.</p>
-        <p id="mantequita-note" class="mante-note hidden">🧈 ¡Mantequita! Tocá una categoría 👇</p>
-        <div id="mantequita-picker" class="picker-grid hidden" role="group" aria-label="Elegir categoría"></div>
-        <button type="button" id="btn-spin" class="btn-play host-only">GIRAR RULETA 🎡</button>
-      </section>
-
-      <!-- C. QUESTION -->
-      <section id="screen-question" class="hidden" aria-labelledby="q-text">
-        <div class="turn-toon">
-          <span id="q-avatar" class="avatar-toon" aria-hidden="true">😀</span>
-          <span class="turn-txt"><strong id="q-player">Jugador 1</strong><br /><small id="q-category" class="badge-toon">🌍 Geografía</small></span>
-        </div>
-
-        <div id="q-timer" class="timer-toon hidden" aria-live="polite">
-          <span id="q-timer-label">⏱️ 30s</span>
-          <div class="timer-track" aria-hidden="true"><div id="q-timer-bar" class="timer-bar"></div></div>
-        </div>
-
-        <article class="card-toon q-card">
-          <p id="q-text" class="q-text"></p>
-        </article>
-
-        <div id="powerups" class="power-grid" aria-label="Powerups">
-          <button type="button" id="pw-fifty" class="btn-power">➗ 50/50</button>
-          <button type="button" id="pw-remove" class="btn-power">➖ Sacar 1</button>
-          <button type="button" id="pw-call" class="btn-power">📞 Familiar</button>
-          <button type="button" id="pw-piquete" class="btn-power">🔪 Piquete</button>
-        </div>
-        <p id="coins-hint" class="note center" aria-live="polite"></p>
-
-        <div id="q-options" class="grid gap-2 mt-2" role="group" aria-label="Opciones de respuesta"></div>
-
-        <div id="q-open" class="grid gap-2 mt-2">
-          <button type="button" id="btn-reveal" class="btn-white host-only">Mostrar Respuesta 👀</button>
-          <p id="q-answer" class="answer-toon hidden"></p>
-          <div class="grid grid-cols-2 gap-2 host-only">
-            <button type="button" id="btn-hit" class="btn-hit">Acertó ✅</button>
-            <button type="button" id="btn-miss" class="btn-miss">Falló ❌</button>
-          </div>
-        </div>
-
-        <button type="button" id="btn-next" class="btn-play hidden mt-3 host-only">Siguiente Turno ➡️</button>
-      </section>
-    </main>
-
-    <footer class="footer-toon">
-      <small>🎲 Carrera de Gurises · Hecho con ❤️ para jugar en (fat)milia</small>
-    </footer>
-
-    <button type="button" id="btn-score" class="btn-fab" aria-haspopup="dialog" aria-label="Ver puntajes">🏆</button>
-  </div>
-
-  <!-- D. SCOREBOARD -->
-  <dialog id="modal-scoreboard" aria-labelledby="scoreboard-title">
-    <h2 id="scoreboard-title" class="font-display">📊 PROGRESO</h2>
-    <ul id="score-list" class="grid gap-2"></ul>
-    <button type="button" id="btn-end-board" class="btn-end btn-end-game w-full host-only">Terminar partida 🏁</button>
-    <form method="dialog">
-      <button type="submit" id="btn-close-score" class="btn-white w-full">Cerrar ✖️</button>
-    </form>
-  </dialog>
-
-  <!-- COMPARTIR EN VIVO -->
-  <dialog id="modal-share" aria-labelledby="share-title">
-    <h2 id="share-title" class="font-display center">📡 MIRAR EN VIVO</h2>
-    <p class="note center">Pasales este código o el QR a tu familia</p>
-    <p id="share-code" class="share-code center" aria-live="polite">·····</p>
-    <div class="share-qr"><img id="share-qr" alt="QR para unirse a la partida en vivo" width="180" height="180" /></div>
-    <p id="share-url" class="note center share-url"></p>
-    <p class="note center">👀 Espectadores: <strong id="share-count">0</strong></p>
-    <p id="share-net" class="note center" aria-live="polite"></p>
-    <p class="note center">💡 Si el WiFi de tu empresa bloquea la conexión, transmití con datos móviles. Solo se envían datos livianos (sin video ni audio).</p>
-    <div class="grid gap-2 mt-3">
-      <button type="button" id="btn-stop-share" class="btn-end w-full">Cerrar sala 🔌</button>
-      <form method="dialog"><button type="submit" class="btn-white w-full">Cerrar ✖️</button></form>
-    </div>
-  </dialog>
-
-  <!-- VICTORY -->
-  <dialog id="modal-victory" aria-labelledby="winner-name">
-    <div id="confetti-box" class="confetti-box" aria-hidden="true"></div>
-    <p class="hero-emoji center" aria-hidden="true">🏆</p>
-    <h2 class="font-display center">¡TENEMOS GANADOR!</h2>
-    <p id="winner-name" class="winner-name center" aria-live="polite"></p>
-    <p id="winner-stats" class="note center"></p>
-    <p id="victory-guest-note" class="note center hidden">👀 Estás mirando en vivo. El anfitrión maneja la partida.</p>
-    <div class="grid gap-2 mt-3">
-      <button type="button" id="btn-restart" class="btn-play host-only">Volver a Jugar 🔁</button>
-      <button type="button" id="btn-new-players" class="btn-white host-only">Cambiar jugadores 👥</button>
-      <button type="button" id="btn-leave-win" class="btn-white hidden">Salir 👀</button>
-    </div>
-  </dialog>
-
-  <dialog id="modal-call" aria-labelledby="call-title">
-    <h2 id="call-title" class="font-display">📞 LLAMÁ A UN FAMILIAR</h2>
-    <p class="note">Tenés <strong id="call-countdown">60</strong>s para consultar. El timer está en pausa.</p>
-    <form method="dialog">
-      <button type="submit" id="btn-close-call" class="btn-white w-full">Volver ✅</button>
-    </form>
-  </dialog>
-
-  <dialog id="modal-piquete" aria-labelledby="piquete-title">
-    <h2 id="piquete-title" class="font-display">🔪 EL PIQUETE</h2>
-    <p class="note" id="piquete-desc">Elegí a quién mandarle esta pregunta: si la erra pierde esa insignia, si la emboca el punto es tuyo.</p>
-    <ul id="piquete-list" class="grid gap-2"></ul>
-    <form method="dialog">
-      <button type="submit" class="btn-white w-full">Cancelar ✖️</button>
-    </form>
-  </dialog>
-
-  <div id="net-lost" class="net-lost hidden" role="alert">
-    <div class="card-toon center">
-      <p class="hero-emoji" aria-hidden="true">📡</p>
-      <p><strong>Se perdió la conexión con el anfitrión.</strong></p>
-      <div class="grid gap-2 mt-3">
-        <button type="button" id="btn-rejoin" class="btn-play">Reintentar 🔁</button>
-        <button type="button" id="btn-leave" class="btn-white">Salir 👀</button>
+  <header class="topbar">
+    <a class="brand" href="/">GIESIN <span>UTN · Regional Resistencia</span></a>
+    <a id="ranking-link" class="primary" href="/ranking">Ranking</a>
+  </header>
+  <main>
+    <section id="welcome" class="welcome" aria-labelledby="welcome-title">
+      <div class="intro">
+        <p class="eyebrow">Noche de las Universidades</p>
+        <h1 id="welcome-title">Desafío<br>GIESIN<span>.</span></h1>
+        <p>Probá cuánto sabés de ingeniería y de la UTN Resistencia.</p>
+        <div class="hero-burst" aria-hidden="true"><span>30<span>s</span></span></div>
       </div>
-    </div>
-  </div>
+      <form id="signup" class="card">
+        <h2>Sumate al desafío</h2>
+        <p><span id="question-count"></span> preguntas, 30 segundos por pregunta y un comodín 50/50.</p>
+        <p class="small">Los aciertos rápidos y consecutivos suman más puntos.</p>
+        <label for="name">Nombre o nombre y apellido</label>
+        <input id="name" name="name" autocomplete="name" required maxlength="40">
+        <label for="instagram">Instagram <span class="optional">(opcional)</span></label>
+        <input id="instagram" name="instagram" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="31" placeholder="@usuario" aria-describedby="instagram-help">
+        <p id="instagram-help" class="small">Dejalo si querés que te etiquetemos al compartir los resultados en redes.</p>
+        <p class="small">El ranking muestra tu nombre y tu puntaje en el grupo que elijas.</p>
+        <button id="start" type="submit" class="primary" disabled>Empezar a jugar <span aria-hidden="true">→</span></button>
+        <fieldset id="audience-picker" class="audience" hidden>
+          <legend id="audience-title" tabindex="-1">¿En qué grupo jugás?</legend>
+          <div class="audience-options">
+            <button type="submit" class="primary" name="audience" value="general"><span>Público general</span></button>
+            <button type="submit" class="primary" name="audience" value="ingenieria"><span>Estudiante de ingeniería</span></button>
+          </div>
+        </fieldset>
+        <p id="load-status" role="status" class="small" hidden></p>
+      </form>
+    </section>
 
-  <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    <section id="game" class="card game" hidden aria-labelledby="question">
+      <div class="game-meta">
+        <span id="progress"></span>
+        <span><strong id="score">0</strong> pts</span>
+      </div>
+      <div class="clock">
+        <progress id="time-bar" max="30" value="30" aria-label="Tiempo restante"></progress>
+        <span id="seconds" aria-hidden="true">30 s</span>
+      </div>
+      <div class="question-row">
+        <h1 id="question" tabindex="-1"></h1>
+        <div id="streak" class="streak-burst" hidden><span id="multiplier"></span></div>
+      </div>
+      <div id="options" class="options" role="group" aria-label="Opciones de respuesta"></div>
+      <p id="feedback" role="status"></p>
+      <div class="game-actions">
+        <button id="half" type="button" class="secondary">Comodín 50/50</button>
+        <button id="next" type="button" class="primary" hidden></button>
+      </div>
+    </section>
 
-  <script src="./js/app.js?v=12" defer></script>
+    <section id="finish" class="card finish" hidden aria-labelledby="finish-title">
+      <h1 id="finish-title" tabindex="-1">¡Partida completa!</h1>
+      <p class="final-score"><strong id="final-score"></strong> pts</p>
+      <p id="summary"></p>
+      <p id="send-status" role="status"></p>
+      <div class="game-actions">
+        <button id="retry" class="secondary" hidden>Reintentar envío</button>
+        <button id="restart" class="primary">Nueva partida</button>
+      </div>
+    </section>
+
+    <section id="ranking" class="card ranking" hidden aria-labelledby="ranking-title">
+      <p class="eyebrow">Desafío GIESIN</p>
+      <h1 id="ranking-title">Ranking del stand</h1>
+      <p id="ranking-status" role="status"></p>
+      <div class="ranking-columns">
+        <section aria-labelledby="ranking-general-title">
+          <h2 id="ranking-general-title">Público general</h2>
+          <p id="empty-general" class="ranking-empty" hidden>Todavía no hay puntajes.</p>
+          <ol id="ranking-general" class="ranking-list" aria-labelledby="ranking-general-title"></ol>
+        </section>
+        <section aria-labelledby="ranking-ingenieria-title">
+          <h2 id="ranking-ingenieria-title">Estudiantes de ingeniería</h2>
+          <p id="empty-ingenieria" class="ranking-empty" hidden>Todavía no hay puntajes.</p>
+          <ol id="ranking-ingenieria" class="ranking-list" aria-labelledby="ranking-ingenieria-title"></ol>
+        </section>
+      </div>
+    </section>
+  </main>
 </body>
 </html>
