@@ -5,7 +5,7 @@ const format = new Intl.NumberFormat('es-AR');
 const queuePrefix = 'giesin-resultado-pendiente:';
 const pending = new Map();
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-let bank, round, timer, deadline, answered, lastResultId;
+let banks, round, timer, deadline, answered, lastResultId;
 let sending = false;
 const savedLocally = new Set();
 
@@ -24,13 +24,17 @@ function showScreen(screen) {
   window.scrollTo(0, 0);
 }
 
-async function loadBank() {
+async function loadBanks() {
   try {
-    const response = await fetch('/data/evento.json');
-    if (!response.ok) throw new Error('Banco no disponible');
-    const questions = await response.json();
-    if (questions.length < QUESTION_COUNT) throw new Error('Banco incompleto');
-    bank = questions;
+    const sources = { general: '/data/evento-general.json', ingenieria: '/data/evento.json' };
+    const entries = await Promise.all(AUDIENCES.map(async (audience) => {
+      const response = await fetch(sources[audience]);
+      if (!response.ok) throw new Error('Banco no disponible');
+      const questions = await response.json();
+      if (questions.length < QUESTION_COUNT) throw new Error('Banco incompleto');
+      return [audience, questions];
+    }));
+    banks = Object.fromEntries(entries);
     $('start').disabled = false;
   } catch {
     $('load-status').hidden = false;
@@ -69,7 +73,7 @@ function revealAudience() {
 
 function begin(event) {
   event.preventDefault();
-  if (!bank) return;
+  if (!banks) return;
   const name = $('name').value.trim();
   const instagram = instagramHandle($('instagram').value);
   $('name').setCustomValidity(name ? '' : 'Ingresá tu nombre.');
@@ -85,7 +89,7 @@ function begin(event) {
   if ($('audience-picker').hidden || !AUDIENCES.includes(audience)) return;
 
   round = {
-    name, audience, instagram, questions: shuffle(bank).slice(0, QUESTION_COUNT),
+    name, audience, instagram, questions: shuffle(banks[audience]).slice(0, QUESTION_COUNT),
     answers: [], index: 0, score: 0, streak: 0, usedHalf: false,
   };
   showScreen('game');
@@ -336,5 +340,5 @@ if (location.pathname === '/ranking') {
   window.addEventListener('online', flushQueue);
   setInterval(flushQueue, 12000);
   void flushQueue();
-  void loadBank();
+  void loadBanks();
 }

@@ -1,1 +1,4 @@
 /ranking.sqlite*
+/.env.local
+/dist/
+/.vercel/

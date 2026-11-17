@@ -163,6 +163,17 @@ progress.urgent::-moz-progress-bar { background: #ae4c27; }
 .ranking-entry { display: flex; justify-content: space-between; gap: .65rem; overflow-wrap: anywhere; }
 .ranking-entry strong { flex: none; }
 
+.admin-login { max-width: 28rem; margin-inline: auto; display: grid; gap: .85rem; }
+.admin-login h1, .admin-heading h1 { font-size: clamp(1.5rem, 4vw, 2.25rem); letter-spacing: -.035em; }
+.admin-login label { font-weight: 750; }
+.admin-login input { width: 100%; min-height: 2.85rem; padding: .6rem .8rem; border: 1px solid #a8b5a8; border-radius: .55rem; }
+.admin-error { color: #9b392c; }
+.admin-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem; margin-bottom: 1rem; }
+.admin-table { overflow-x: auto; }
+.admin-table table { width: 100%; border-collapse: collapse; text-align: left; }
+.admin-table th, .admin-table td { padding: .7rem .5rem; border-bottom: 1px solid var(--line); }
+.admin-table th:last-child, .admin-table td:last-child { text-align: right; }
+
 @media (max-width: 720px) {
   main { margin-block: 1rem; }
   .welcome { grid-template-columns: 1fr; gap: .7rem; }

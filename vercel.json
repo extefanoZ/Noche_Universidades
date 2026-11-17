@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "node scripts/build.mjs",
+  "outputDirectory": "dist",
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/ranking", "destination": "/index.html" },
+    { "source": "/api/ranking", "destination": "/api/giesin?route=ranking" },
+    { "source": "/api/resultados", "destination": "/api/giesin?route=resultados" },
+    { "source": "/admin", "destination": "/api/giesin?route=admin" },
+    { "source": "/admin/login", "destination": "/api/giesin?route=login" },
+    { "source": "/admin/logout", "destination": "/api/giesin?route=logout" }
+  ]
+}

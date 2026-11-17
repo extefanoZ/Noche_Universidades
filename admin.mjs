@@ -55,33 +55,37 @@ function contactsPage(contacts) {
     </section>`);
 }
 
-function sessionCookie(value, maxAge) {
-  return `${cookieName}=${value}; Path=/admin; Max-Age=${maxAge}; HttpOnly; SameSite=Strict`;
+function sessionCookie(value, maxAge, secure) {
+  return `${cookieName}=${value}; Path=/admin; Max-Age=${maxAge}; HttpOnly; SameSite=Strict${secure ? '; Secure' : ''}`;
 }
 
-export function createAdmin({ password, listContacts, readBody }) {
+export function createAdmin({ password, store, readBody, secureCookies }) {
   const expected = password ? digest(password) : null;
-  let session;
-  let failures = 0;
-  let retryAt = 0;
-
-  return async function handleAdmin(request, response, pathname) {
+  return async function handleAdmin(request, pathname) {
     const headers = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' };
-    const html = (status, content) => response.writeHead(status, {
-      ...headers, 'Content-Type': 'text/html; charset=utf-8',
-      'Content-Security-Policy': "default-src 'none'; style-src 'self'; form-action 'self'; frame-ancestors 'none'",
-    }).end(content);
-    const redirect = (cookie) => response.writeHead(303, { ...headers, Location: '/admin', 'Set-Cookie': cookie }).end();
-    const cookie = request.headers.cookie?.split(';').map((entry) => entry.trim()).find((entry) => entry.startsWith(cookieName + '='));
-    const authenticated = session && Date.now() < session.expires && cookie === cookieName + '=' + session.token;
+    const html = (status, content) => new Response(content, {
+      status,
+      headers: {
+        ...headers, 'Content-Type': 'text/html; charset=utf-8',
+        'Content-Security-Policy': "default-src 'none'; style-src 'self'; form-action 'self'; frame-ancestors 'none'",
+      },
+    });
+    const redirect = (cookie) => new Response(null, {
+      status: 303, headers: { ...headers, Location: '/admin', 'Set-Cookie': cookie },
+    });
+    const cookie = request.headers.get('cookie')?.split(';').map((entry) => entry.trim())
+      .find((entry) => entry.startsWith(cookieName + '='));
+    const token = cookie?.slice(cookieName.length + 1) ?? '';
+    const tokenHash = /^[a-f0-9]{64}$/.test(token) ? digest(token).toString('hex') : null;
 
     if (pathname === '/admin' && request.method === 'GET') {
       if (!expected) return html(503, loginPage('El acceso de administración no está configurado.', true));
-      return html(200, authenticated ? contactsPage(listContacts()) : loginPage());
+      const authenticated = tokenHash && await store.hasAdminSession(tokenHash);
+      return html(200, authenticated ? contactsPage(await store.listContacts()) : loginPage());
     }
 
-    if (request.method === 'POST' && request.headers['sec-fetch-site'] &&
-        request.headers['sec-fetch-site'] !== 'same-origin') {
+    const fetchSite = request.headers.get('sec-fetch-site');
+    if (request.method === 'POST' && fetchSite && fetchSite !== 'same-origin') {
       return html(403, loginPage('Abrí la página de administración para continuar.'));
     }
 
@@ -89,27 +93,21 @@ export function createAdmin({ password, listContacts, readBody }) {
       if (!expected) return html(503, loginPage('El acceso de administración no está configurado.', true));
       const body = await readBody(request);
       if (body === null) return html(413, loginPage('La solicitud es demasiado grande.'));
-      const now = Date.now();
-      if (now >= retryAt) {
-        failures = 0;
-        retryAt = now + 60_000;
-      }
-      if (failures >= 8) return html(429, loginPage('Demasiados intentos. Volvé a intentar en un minuto.'));
+      if (!await store.takeAdminAttempt()) return html(429, loginPage('Demasiados intentos. Volvé a intentar en un minuto.'));
       const candidate = new URLSearchParams(body).get('password') ?? '';
       if (!timingSafeEqual(digest(candidate), expected)) {
-        failures++;
         return html(401, loginPage('Contraseña incorrecta.'));
       }
-      failures = 0;
-      session = { token: randomBytes(32).toString('hex'), expires: now + sessionSeconds * 1000 };
-      return redirect(sessionCookie(session.token, sessionSeconds));
+      const newToken = randomBytes(32).toString('hex');
+      await store.saveAdminSession(digest(newToken).toString('hex'), Date.now() + sessionSeconds * 1000);
+      return redirect(sessionCookie(newToken, sessionSeconds, secureCookies));
     }
 
     if (pathname === '/admin/logout' && request.method === 'POST') {
-      if (authenticated) session = undefined;
-      return redirect(sessionCookie('', 0));
+      if (tokenHash) await store.deleteAdminSession(tokenHash);
+      return redirect(sessionCookie('', 0, secureCookies));
     }
 
-    response.writeHead(404, headers).end();
+    return new Response(null, { status: 404, headers });
   };
 }
