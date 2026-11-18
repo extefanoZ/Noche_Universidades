@@ -1,5 +1,5 @@
-export const QUESTION_COUNT = 8;
-export const SECONDS_PER_QUESTION = 30;
+export const QUESTION_COUNT = 10;
+export const SECONDS_PER_QUESTION = 60;
 export const AUDIENCES = ['general', 'ingenieria'];
 
 export function multiplier(streak) {
